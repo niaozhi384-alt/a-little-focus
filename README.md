@@ -27,9 +27,9 @@ node server.cjs
 
 ## 数据与账号
 
-使用 Supabase Auth 和 Postgres。前端仅包含公开 publishable key，数据由 RLS 和服务器会话校验隔离；不会暴露管理密钥。密码由认证服务处理。当前注册不要求邮箱验证。
+使用 Supabase Auth 和 Postgres。前端仅包含公开 publishable key，数据由 RLS 和服务器会话校验隔离；不会暴露管理密钥。密码由认证服务处理。新注册需要验证邮箱中的六位验证码；日常使用邮箱和密码登录。验证码由 Supabase 生成和校验，前端不会自行认定验证成功。
 
-邮件找回功能由 config.js 的 emailEnabled 控制，仅在 SMTP、发信域名和回调地址配置并测试通过后启用。
+邮件通过 Resend 的已验证域名 mail.zhuanzhu.cloud 发送，SMTP 密钥仅保存在 Supabase。注册验证码和找回密码使用中文模板。邮件找回由 config.js 的 emailEnabled 控制。免费邮件额度与 Supabase 频率限制耗尽时会阻止本次发送，页面提示稍后重试，已注册账号仍可用密码登录。
 
 ## 部署
 
