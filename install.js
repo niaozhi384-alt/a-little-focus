@@ -72,5 +72,4 @@
   catch{address.focus();address.select();status.textContent='请长按上方网址复制，再粘贴到手机浏览器中打开。'}
  });
  paint();
- if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/sw.js').catch(()=>{});
 })();
