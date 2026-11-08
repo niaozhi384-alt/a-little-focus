@@ -1,4 +1,4 @@
-const CACHE='focus-shell-v2';
+const CACHE='focus-shell-v3';
 const ASSETS=['/','/index.html','/login','/login.html','/style.css','/experience.css','/theme.css','/reminders.css','/extras.css','/theme.js','/vendor/supabase.js','/config.js','/cloud.js','/preferences.js','/stats.js','/quote-engine.js','/quotes.js','/reminder-engine.js','/reminders.js','/app.js','/auth.js','/shader.js','/install.js','/icon.svg','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('focus-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
