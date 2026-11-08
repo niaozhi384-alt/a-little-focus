@@ -42,3 +42,9 @@ node server.cjs
 ## 第三方与设计
 
 Supabase JavaScript SDK 固定为 2.119.0，许可证见 vendor/SUPABASE-LICENSE。流线 Shader 为原创实现，视觉参考用户提供的图片与 21st.dev 的交互组件美学。
+
+## 交互设计参考
+
+目标完成反馈与进度联动、收藏叠卡、学习明细吸附时间线、分钟惯性滚轮和圆形页面转场均按本产品实现；支持键盘和减少动态效果。详见 [DESIGN.md](DESIGN.md)。
+
+设计指导参考 [Unslop](https://github.com/heydamir/unslop)，作者 Damir Sokolovsky（[@heydamir](https://x.com/heydamir)），[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，已针对本产品适配修改。同时参考 [TASTE](https://github.com/Leonxlnx/taste-skill) 和 [Impeccable](https://github.com/pbakaus/impeccable)。
