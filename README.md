@@ -29,6 +29,8 @@ node server.cjs
 
 使用 Supabase Auth 和 Postgres。前端仅包含公开 publishable key，数据由 RLS 和服务器会话校验隔离；不会暴露管理密钥。密码由认证服务处理。新注册需要验证邮箱中的八位验证码；日常使用邮箱和密码登录。验证码由 Supabase 生成和校验，前端不会自行认定验证成功。
 
+HTTPS 部署通过本站 `/api/focus/auth/v1/` 与 `/api/focus/rest/v1/` 转发账号和记录请求，减少客户端直连 Supabase 时的网络故障。转发目标固定为本项目，不接受任意目标地址；原有会话存储、密码验证与 RLS 继续生效。账号接口关闭浏览器和 CDN 缓存，也不进入离线缓存；请求超过 15 秒会中止并提示重试。本地 HTTP 开发仍使用原来的 Supabase 直连。
+
 邮件通过 Resend 的已验证域名 mail.zhuanzhu.cloud 发送，SMTP 密钥仅保存在 Supabase。注册验证码和找回密码使用中文模板。邮件找回由 config.js 的 emailEnabled 控制。免费邮件额度与 Supabase 频率限制耗尽时会阻止本次发送，页面提示稍后重试，已注册账号仍可用密码登录。
 
 ## 部署

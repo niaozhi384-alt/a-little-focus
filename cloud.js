@@ -1,6 +1,22 @@
 (() => {
  const recoveryRequested=new URLSearchParams(location.hash.slice(1)).get('type')==='recovery';
- const client=window.supabase.createClient(FOCUS_CONFIG.url,FOCUS_CONFIG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ // Keep the original Supabase URL so existing session storage and recovery links stay valid.
+ // HTTPS deployments relay only this project's Auth and REST traffic through Vercel.
+ const transport={};
+ if(location.protocol==='https:'&&FOCUS_CONFIG.proxyPath){
+  const upstream=new URL(FOCUS_CONFIG.url),nativeFetch=window.fetch.bind(window);
+  transport.fetch=async(input,init)=>{
+   const request=new Request(input,init),url=new URL(request.url);
+   if(url.origin!==upstream.origin||!/^\/(auth|rest)\/v1(?:\/|$)/.test(url.pathname))return nativeFetch(request);
+   const target=location.origin+FOCUS_CONFIG.proxyPath+url.pathname+url.search;
+   const controller=new AbortController(),abort=()=>controller.abort();
+   if(request.signal.aborted)abort();else request.signal.addEventListener('abort',abort,{once:true});
+   const timeout=setTimeout(abort,15000);
+   try{return await nativeFetch(new Request(target,request),{signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'})}
+   finally{clearTimeout(timeout);request.signal.removeEventListener('abort',abort)}
+  };
+ }
+ const client=window.supabase.createClient(FOCUS_CONFIG.url,FOCUS_CONFIG.key,{global:transport,auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const cloud=window.FocusCloud={client,user:null,known:new Set(),busy:false,recoveryRequested};
  function applyDataReset(account){
   const revision=account.app_metadata?.focus_data_reset_at;
