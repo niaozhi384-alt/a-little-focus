@@ -3,17 +3,27 @@
  // Keep the original Supabase URL so existing session storage and recovery links stay valid.
  // HTTPS deployments relay only this project's Auth and REST traffic through Vercel.
  const transport={};
- if(location.protocol==='https:'&&FOCUS_CONFIG.proxyPath){
+ if(location.protocol==='https:'){
   const upstream=new URL(FOCUS_CONFIG.url),nativeFetch=window.fetch.bind(window);
-  transport.fetch=async(input,init)=>{
-   const request=new Request(input,init),url=new URL(request.url);
-   if(url.origin!==upstream.origin||!/^\/(auth|rest)\/v1(?:\/|$)/.test(url.pathname))return nativeFetch(request);
-   const target=location.origin+FOCUS_CONFIG.proxyPath+url.pathname+url.search;
+  transport.fetch=async(input,init={})=>{
+   const isRequest=typeof Request!=='undefined'&&input instanceof Request;
+   const url=new URL(isRequest?input.url:input);
+   if(url.origin!==upstream.origin||!/^\/(auth|rest)\/v1(?:\/|$)/.test(url.pathname))return nativeFetch(input,init);
+   const target=location.origin+(FOCUS_CONFIG.proxyPath||'/api/focus')+url.pathname+url.search;
+   let options={...init};
+   if(isRequest){
+    const request=new Request(input,init);
+    options={method:request.method,headers:request.headers,signal:request.signal,referrerPolicy:request.referrerPolicy,integrity:request.integrity,keepalive:request.keepalive};
+    if(request.method!=='GET'&&request.method!=='HEAD')options.body=await request.arrayBuffer();
+   }
+   // Preserve JSON as a string. Rebuilding a Request with another Request as init
+   // turns its body into a stream, which fails on HTTP/1 and some mobile browsers.
+   const callerSignal=options.signal;
    const controller=new AbortController(),abort=()=>controller.abort();
-   if(request.signal.aborted)abort();else request.signal.addEventListener('abort',abort,{once:true});
+   if(callerSignal?.aborted)abort();else callerSignal?.addEventListener('abort',abort,{once:true});
    const timeout=setTimeout(abort,15000);
-   try{return await nativeFetch(new Request(target,request),{signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'})}
-   finally{clearTimeout(timeout);request.signal.removeEventListener('abort',abort)}
+   try{return await nativeFetch(target,{...options,signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'})}
+   finally{clearTimeout(timeout);callerSignal?.removeEventListener('abort',abort)}
   };
  }
  const client=window.supabase.createClient(FOCUS_CONFIG.url,FOCUS_CONFIG.key,{global:transport,auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
